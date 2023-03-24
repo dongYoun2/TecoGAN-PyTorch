@@ -44,6 +44,7 @@ if [[ ${num_gpus} > 1 ]]; then
     dist_args="-m torch.distributed.launch --nproc_per_node ${num_gpus} --master_port ${master_port}"
 fi
 
+PYTORCH_ENABLE_MPS_FALLBACK=1 \
 CUDA_VISIBLE_DEVICES=${gpu_ids} \
   python ${dist_args} ${root_dir}/codes/main.py \
   --exp_dir ${exp_dir} \

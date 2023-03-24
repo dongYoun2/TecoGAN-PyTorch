@@ -50,15 +50,15 @@ def parse_configs(args):
 
 def setup_device(opt, gpu_ids, local_rank):
     gpu_ids = tuple(map(int, gpu_ids.split(',')))
-    if gpu_ids[0] < 0 or not torch.cuda.is_available():
+    if gpu_ids[0] < 0 or not (torch.cuda.is_available() or torch.backends.mps.is_available()):
         # cpu settings
         opt.update({
             'dist': False,
             'device': 'cpu',
             'rank': 0
         })
-    else:
-        # gpu settings
+    elif torch.cuda.is_available():
+        # gpu settings (CUDA)
         if len(gpu_ids) == 1:
             # single gpu
             torch.cuda.set_device(0)
@@ -70,9 +70,14 @@ def setup_device(opt, gpu_ids, local_rank):
         else:
             # multiple gpus
             init_dist(opt, local_rank)
-
         torch.backends.cudnn.benchmark = True
         # torch.backends.cudnn.deterministic = True
+    else: # MPS for M1 GPU
+        opt.update({
+                'dist': False,
+                'device': 'mps',
+                'rank': 0
+            })
 
 
 def setup_random_seed(seed):

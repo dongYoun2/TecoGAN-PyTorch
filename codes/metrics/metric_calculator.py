@@ -49,7 +49,7 @@ class MetricCalculator():
                     net=cfg['net'],
                     colorspace=cfg['colorspace'],
                     spatial=cfg['spatial'],
-                    use_gpu=(opt['device'] == 'cuda'),
+                    use_gpu=(opt['device'] in ('cuda', 'mps')),
                     gpu_ids=[0 if not self.dist else opt['local_rank']],
                     version=cfg['version'])
 
