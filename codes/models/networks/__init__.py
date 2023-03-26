@@ -19,8 +19,9 @@ def define_generator(opt):
     return net_G
 
 
-def define_discriminator(opt):
+def define_discriminator(opt, nb_filter_rate=1):
     net_D_opt = opt['model']['discriminator']
+    nb_filters = [int(nb_filter_rate * f) for f in net_D_opt["nb_filters"]]
 
     if opt['dataset']['degradation']['type'] == 'BD':
         spatial_size = opt['dataset']['train']['crop_size']
@@ -30,6 +31,7 @@ def define_discriminator(opt):
     if net_D_opt['name'].lower() == 'stnet':  # spatio-temporal discriminator
         net_D = SpatioTemporalDiscriminator(
             in_nc=net_D_opt['in_nc'],
+            nb_filters=nb_filters,
             spatial_size=spatial_size,
             tempo_range=net_D_opt['tempo_range'],
             degradation=opt['dataset']['degradation']['type'],
@@ -38,6 +40,7 @@ def define_discriminator(opt):
     elif net_D_opt['name'].lower() == 'snet':  # spatial discriminator
         net_D = SpatialDiscriminator(
             in_nc=net_D_opt['in_nc'],
+            nb_filters=nb_filters,
             spatial_size=spatial_size,
             use_cond=net_D_opt['use_cond'])
 

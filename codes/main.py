@@ -39,6 +39,16 @@ def train(opt):
         if opt['dist']:
             train_loader.sampler.set_epoch(epoch)
 
+        pgd_config = opt['train']['discriminator']['pgd']
+        if pgd_config:
+            for t_rate, f_rate in zip(pgd_config["time_rates"], pgd_config["nb_filter_rates"]):
+                t = int(total_epoch * t_rate)
+                if epoch == t:
+                    model.set_net_D(f_rate)
+                    model.set_D_optimizers()
+                    model.set_D_lr_schedules()
+                    break
+
         for data in train_loader:
             # update iter
             iter += 1

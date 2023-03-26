@@ -20,8 +20,8 @@ class VSRGANModel(VSRModel):
 
         if self.is_train:
             self.cnt_upd_D = 0
-
-    def set_networks(self):
+    
+    def set_net_G(self):
         # define generator
         self.net_G = define_generator(self.opt)
         self.net_G = self.model_to_device(self.net_G)
@@ -33,10 +33,11 @@ class VSRGANModel(VSRModel):
         if load_path_G:
             self.load_network(self.net_G, load_path_G)
             base_utils.log_info('Load generator from: {}'.format(load_path_G))
-
+    
+    def set_net_D(self, nb_filter_rate=1):
         if self.is_train:
             # define discriminator
-            self.net_D = define_discriminator(self.opt)
+            self.net_D = define_discriminator(self.opt, nb_filter_rate)
             self.net_D = self.model_to_device(self.net_D)
             base_utils.log_info('Discriminator: {}\n{}'.format(
                 self.opt['model']['discriminator']['name'], self.net_D.__str__()))
@@ -46,6 +47,10 @@ class VSRGANModel(VSRModel):
             if load_path_D:
                 self.load_network(self.net_D, load_path_D)
                 base_utils.log_info('Load discriminator from: {}'.format(load_path_D))
+
+    def set_networks(self):
+        self.set_net_G()
+        self.set_net_D()
 
     def set_criterions(self):
         # pixel criterion
@@ -71,7 +76,7 @@ class VSRGANModel(VSRModel):
         # gan criterion
         self.gan_crit = define_criterion(self.opt['train'].get('gan_crit'))
 
-    def set_optimizers(self):
+    def set_G_optimizers(self):
         # set optimizer for net_G
         self.optim_G = optim.Adam(
             self.net_G.parameters(),
@@ -79,6 +84,7 @@ class VSRGANModel(VSRModel):
             weight_decay=self.opt['train']['generator'].get('weight_decay', 0),
             betas=self.opt['train']['generator'].get('betas', (0.9, 0.999)))
 
+    def set_D_optimizers(self):
         # set optimizer for net_D
         self.optim_D = optim.Adam(
             self.net_D.parameters(),
@@ -86,14 +92,23 @@ class VSRGANModel(VSRModel):
             weight_decay=self.opt['train']['discriminator'].get('weight_decay', 0),
             betas=self.opt['train']['discriminator'].get('betas', (0.9, 0.999)))
 
-    def set_lr_schedules(self):
+    def set_optimizers(self):
+        self.set_G_optimizers()
+        self.set_D_optimizers()
+
+    def set_G_lr_schedules(self):
         # set lr schedules for net_G
         self.sched_G = define_lr_schedule(
             self.opt['train']['generator'].get('lr_schedule'), self.optim_G)
 
+    def set_D_lr_schedules(self):
         # set lr schedules for net_D
         self.sched_D = define_lr_schedule(
             self.opt['train']['discriminator'].get('lr_schedule'), self.optim_D)
+
+    def set_lr_schedules(self):
+        self.set_G_lr_schedules()
+        self.set_D_lr_schedules()
 
     def train(self):
         # === prepare data === #

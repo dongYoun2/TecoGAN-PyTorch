@@ -46,7 +46,7 @@ model:
     name: STNet  # spatio-temporal network
     in_nc: 3
     tempo_range: 3
-
+    nb_filters: [64, 64, 64, 128, 256]
     load_path: ~
 
 
@@ -73,6 +73,9 @@ train:
     lr_schedule:
       type: FixedLR
     betas: [0.9, 0.999]
+    pgd:
+      time_rates: [0, 0.25, 0.6]
+      nb_filter_rates: [0.25, 0.5, 1]
 
   # other configs
   moving_first_frame: true
